@@ -117,7 +117,13 @@ def load_data():
     
     return df
 
-features = [
+
+def train_rf_model(df):
+    dv = DictVectorizer(sparse=False)
+    rf = RandomForestClassifier(n_estimators=200, max_depth=25, 
+                            random_state=1, n_jobs=-1)
+    
+    features = [
     'EMA7',
     'EMA14',
     'EMA30',
@@ -137,11 +143,6 @@ features = [
     '%K30',
     '%D30'
     ]
-
-def train_rf_model(df):
-    dv = DictVectorizer(sparse=False)
-    rf = RandomForestClassifier(n_estimators=200, max_depth=25, 
-                            random_state=1, n_jobs=-1)
     
     #@ Split the data into training and test sets
     df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=42)
@@ -177,49 +178,6 @@ def train_rf_model(df):
     #@ Save models to files
     joblib.dump(dv, 'dv.pkl')
     joblib.dump(rf, 'rf_model.pkl')
-
-def rf_model():
-    dv = DictVectorizer(sparse=False)
-    rf = RandomForestClassifier(n_estimators=200, max_depth=25, 
-                            random_state=1, n_jobs=-1)
-
-    # Define the pipeline with DataVectorizer and RandomForestClassifier
-    pipeline = Pipeline([
-        ('dv', dv),
-        ('rf', rf)
-    ])
-
-    return pipeline
-
-def train_models_pipeline(df):
-    # Split the data into training and test sets
-    # df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=42)
-    
-    model = rf_model()
-    
-    split_index = int(0.8 * len(df))
-    df_train_full = df[:split_index]
-    df_test = df[split_index:]
-    
-    # Extract features and target labels
-    y_train_full = df_train_full.signals.values
-    y_test = df_test.signals.values
-    
-    X_train = df_train_full[features].to_dict(orient='records')
-    X_test = df_test[features].to_dict(orient='records')
-    
-    # Train the model pipeline
-    model.fit(X_train, y_train_full)
-    
-    # Make predictions
-    y_pred = model.predict(X_test)
-    
-    # Calculate and print ROC AUC score
-    score = roc_auc_score(y_test, y_pred)
-    print("ROC AUC Score:", score)
-    
-    # Save the pipeline to a single model file
-    joblib.dump(model, 'model.pkl')
 
 def train_xgb_classifier(df):
     

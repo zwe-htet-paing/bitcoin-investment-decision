@@ -61,14 +61,14 @@ Attach a label to each movement and use for classification task:
 
 ### Run Locally
 
-- Run web server using `python flask_app.py`
-- Open a new terminal and run  `python predict.py`
+- Run web server using `python predict.py`
+- Open a new terminal and run  `python test_predict.py`
 
 ### Run on Docker
 
 - `docker build -t midterm_project .`
 - `docker run -it --rm -p 9696:9696 midterm_project`
-- Open a new terminal and run `python predict.py`
+- Open a new terminal and run `python test_predict.py`
 
 ### Requirements
 

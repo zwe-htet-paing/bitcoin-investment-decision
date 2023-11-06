@@ -6,7 +6,7 @@ COPY ["Pipfile", "Pipfile.lock", "./"]
 
 RUN pipenv install --system --deploy
 
-COPY ["flask_app.py", "dv.pkl", "xgb_model.pkl" ,"./"]
+COPY ["predict.py", "dv.pkl", "xgb_model.pkl" ,"./"]
 
 EXPOSE 9696
 

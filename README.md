@@ -1,4 +1,6 @@
-## Bitcoin Investment Decision - DatatalksClub ML Zoomcamp Midterm Project
+## Bitcoin Investment Decision
+
+DatatalksClub ML Zoomcamp Midterm Project
 
 ### Objectives of Midterm Project:
 
@@ -14,7 +16,7 @@
 
 I am considering investing in Bitcoin (BTC) and need to make an informed decision based on historical price data. I have access to daily price information, including open, close, low, and high values. However, I am uncertain about the profitability and risks associated with investing in BTC. I need to develop a strategy to determine whether it's a suitable time to buy BTC or if I should wait for more favorable market conditions.
 
-#### Dataset
+### Dataset
 
 For this project I used the Bitcoin USD (BTC-USD) dataset which is a collection of historical price and trading data for Bitcoin, the most well-known and widely used cryptocurrency, denominated in US dollars (USD). This dataset provides a detailed record of Bitcoin's market performance over a specific period, allowing analysts, traders, and researchers to study its price movements, trading volume, and other related metrics.
 
@@ -29,7 +31,7 @@ Typically, a BTC-USD dataset includes various columns or features, each providin
 
 Dataset Link : https://finance.yahoo.com/quote/BTC-USD/history?p=BTC-USD&guccounter=1
 
-#### Data Analysis
+### Data Analysis
 
 Constructing a dataset that contains the predictors which will be used to make the predictions, and the output variable.
 
@@ -42,7 +44,7 @@ The current Data of the bicoin consists of date, open, high, low, close and volu
   Momentum (MOM) : It is the rate of acceleration of a security's price or volume – that is, the speed at which the price is changing.
 
 
-#### Prepare data for classification
+### Prepare data for classification
 
 Calculates short and long Simple Moving Averages for the 'close' price and generates trading signals based on the relationship between these averages. When the short-term average is above the long-term average, it implies a bullish trend, and a buy signal is generated; otherwise, a sell signal is generated, indicating a potential bearish trend.
 

@@ -69,7 +69,7 @@ def RSI(series, period):
     return 100 - 100 / (1 + rs)
 
 def load_data():
-    data = pd.read_csv('./BTC-USD.csv')
+    data = pd.read_csv('dataset/BTC-USD.csv')
     data.columns = data.columns.str.replace(' ', '_').str.lower()
     data = data.drop(['adj_close'], axis=1)
     

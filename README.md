@@ -66,8 +66,8 @@ Attach a label to each movement and use for classification task:
 
 ### Run on Docker
 
-- `docker build -t midterm_project .`
-- `docker run -it --rm -p 9696:9696 midterm_project`
+- `docker build -t bitcoin-investment-decision .`
+- `docker run -it --rm -p 9696:9696 bitcoin-investment-decision`
 - Open a new terminal and run `python test_predict.py`
 
 ### Requirements

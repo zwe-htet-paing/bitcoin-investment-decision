@@ -1,92 +1,70 @@
+import re
+import joblib
 import numpy as np
 import pandas as pd
-import seaborn as sns
-from matplotlib import pyplot as plt
-
+import xgboost as xgb
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-import joblib
-
-import re
-import xgboost as xgb
-
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics import roc_curve
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import mutual_info_score
-
 import warnings
+
 warnings.filterwarnings('ignore')
 
 
-# calculation of exponential moving average
+# Calculation of exponential moving average
 def EMA(df, n):
-    EMA = pd.Series(df['close'].ewm(
-        span=n, min_periods=n).mean(), name='EMA_' + str(n))
-    return EMA
+    return pd.Series(df['close'].ewm(span=n, min_periods=n).mean(), name='EMA_' + str(n))
 
-# calculation of rate of change
+# Calculation of rate of change
 def ROC(df, n):
-    M = df.diff(n - 1)
-    N = df.shift(n - 1)
-    ROC = pd.Series(((M / N) * 100), name='ROC_' + str(n))
-    return ROC
+    return pd.Series(((df.diff(n - 1) / df.shift(n - 1)) * 100), name='ROC_' + str(n))
 
 # Calculation of price momentum
 def MOM(df, n):
-    MOM = pd.Series(df.diff(n), name='Momentum_' + str(n))
-    return MOM
+    return pd.Series(df.diff(n), name='Momentum_' + str(n))
 
-# calculation of stochastic osillator.
+# Calculation of stochastic oscillator
 def STOK(close, low, high, n):
-    STOK = ((close - low.rolling(n).min()) /
-            (high.rolling(n).max() - low.rolling(n).min())) * 100
-    return STOK
+    return ((close - low.rolling(n).min()) / (high.rolling(n).max() - low.rolling(n).min())) * 100
 
 def STOD(close, low, high, n):
-    STOK = ((close - low.rolling(n).min()) /
-            (high.rolling(n).max() - low.rolling(n).min())) * 100
-    STOD = STOK.rolling(3).mean()
-    return STOD
+    STOK_value = STOK(close, low, high, n)
+    return STOK_value.rolling(3).mean()
 
-# calculation of relative strength index
+# Calculation of relative strength index
 def RSI(series, period):
     delta = series.diff().dropna()
     u = delta * 0
     d = u.copy()
     u[delta > 0] = delta[delta > 0]
     d[delta < 0] = -delta[delta < 0]
-    # first value is sum of avg gains
+    
     u[u.index[period-1]] = np.mean(u[:period])
-    u = u.drop(u.index[:(period-1)])
-    # first value is sum of avg losses
     d[d.index[period-1]] = np.mean(d[:period])
+    
+    u = u.drop(u.index[:(period-1)])
     d = d.drop(d.index[:(period-1)])
-    rs = u.ewm(com=period-1, adjust=False).mean() / \
-        d.ewm(com=period-1, adjust=False).mean()
+    
+    rs = u.ewm(com=period-1, adjust=False).mean() / d.ewm(com=period-1, adjust=False).mean()
     return 100 - 100 / (1 + rs)
 
+# Load and process data
 def load_data():
     data = pd.read_csv('dataset/BTC-USD.csv')
     data.columns = data.columns.str.replace(' ', '_').str.lower()
     data = data.drop(['adj_close'], axis=1)
     
     df = data.copy()
-    
-    # Create short simple moving average over the short window
-    df['short_mavg'] = df['close'].rolling(
-        window=10, min_periods=1, center=False).mean()
 
-    # Create long simple moving average over the long window
-    df['long_mavg'] = df['close'].rolling(
-        window=60, min_periods=1, center=False).mean()
+    # Moving averages
+    df['short_mavg'] = df['close'].rolling(window=10, min_periods=1).mean()
+    df['long_mavg'] = df['close'].rolling(window=60, min_periods=1).mean()
 
-    # Create signals
+    # Create signals based on moving averages
     df['signals'] = np.where(df['short_mavg'] > df['long_mavg'], 1, 0)
     
-    # Create features
+    # Add technical indicators
     df['EMA7'] = EMA(df, 7)
     df['EMA14'] = EMA(df, 14)
     df['EMA30'] = EMA(df, 30)
@@ -112,106 +90,52 @@ def load_data():
     df['%K30'] = STOK(df['close'], df['low'], df['high'], 30)
     df['%D30'] = STOD(df['close'], df['low'], df['high'], 30)
     
-    df = df.dropna(axis=0)
-    df = df.reset_index(drop=True)
+    df = df.dropna(axis=0).reset_index(drop=True)
     
     return df
 
-
+# Train Random Forest model
 def train_rf_model(df):
     dv = DictVectorizer(sparse=False)
-    rf = RandomForestClassifier(n_estimators=200, max_depth=25, 
-                            random_state=1, n_jobs=-1)
+    rf = RandomForestClassifier(n_estimators=60, max_depth=10, random_state=42, n_jobs=-1)
     
-    features = [
-    'EMA7',
-    'EMA14',
-    'EMA30',
-    'ROC7',
-    'ROC14',
-    'ROC30',
-    'MOM7',
-    'MOM14',
-    'MOM30',
-    'RSI7',
-    'RSI14',
-    'RSI30',
-    '%K7',
-    '%D7',
-    '%K14',
-    '%D14',
-    '%K30',
-    '%D30'
-    ]
+    features = ['EMA7', 'EMA14', 'EMA30', 'ROC7', 'ROC14', 'ROC30', 'MOM7', 'MOM14', 'MOM30', 'RSI7', 'RSI14', 'RSI30', '%K7', '%D7', '%K14', '%D14', '%K30', '%D30']
     
-    #@ Split the data into training and test sets
+    # Split data
     df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=42)
-    df_train_full = df_train_full.reset_index(drop=True)
-    df_test = df_test.reset_index(drop=True)
+    y_train_full = df_train_full['signals'].values
+    y_test = df_test['signals'].values
     
-    # split_index = int(0.8 * len(df))
-    # df_train_full = df[:split_index].reset_index(drop=True)
-    # df_test = df[split_index:].reset_index(drop=True)
-    
-    # Extract features and target labels
-    y_train_full = df_train_full.signals.values
-    y_test = df_test.signals.values
-    
-    #@ Convert features to dictionary and transform using DataVectorizer (dv)
+    # Transform data with DictVectorizer
     train_dict_full = df_train_full[features].to_dict(orient="records")
     dv.fit(train_dict_full)
     X_train_full = dv.transform(train_dict_full)
     
-    #@ Train the Random Forest model
+    test_dict = df_test[features].to_dict(orient="records")
+    X_test = dv.transform(test_dict)
+    
+    # Train model
     rf.fit(X_train_full, y_train_full)
     
-    #@ Transform test data and make predictions
-    test_dict = df_test[features].to_dict(orient="records")
-    print(test_dict[0])
-    X_test = dv.transform(test_dict)
+    # Predict and calculate ROC AUC
     y_pred = rf.predict(X_test)
-    
-    #@ Calculate and print ROC AUC score
     score = roc_auc_score(y_test, y_pred)
-    print("ROC AUC Score:", score)
+    print("Random Forest ROC AUC Score:", score)
     
-    #@ Save models to files
-    joblib.dump(dv, 'dv.pkl')
+    # Save models
+    joblib.dump(dv, 'dv_rf.pkl')
     joblib.dump(rf, 'rf_model.pkl')
 
+# Train XGBoost classifier
 def train_xgb_classifier(df):
+    features = ['EMA7', 'EMA14', 'EMA30', 'ROC7', 'ROC14', 'ROC30', 'MOM7', 'MOM14', 'MOM30', 'RSI7', 'RSI14', 'RSI30', '%K7', '%D7', '%K14', '%D14', '%K30', '%D30']
     
-    features = [
-    'EMA7',
-    'EMA14',
-    'EMA30',
-    'ROC7',
-    'ROC14',
-    'ROC30',
-    'MOM7',
-    'MOM14',
-    'MOM30',
-    'RSI7',
-    'RSI14',
-    'RSI30',
-    '%K7',
-    '%D7',
-    '%K14',
-    '%D14',
-    '%K30',
-    '%D30'
-    ]
-    
-    #@ Split the data into training and test sets
+    # Split data
     df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=42)
-    df_train_full = df_train_full.reset_index(drop=True)
-    df_test = df_test.reset_index(drop=True)
+    y_train_full = df_train_full['signals'].values
+    y_test = df_test['signals'].values
     
-    #@ Extract features and target labels
-    y_train_full = df_train_full.signals.values
-    y_test = df_test.signals.values
-    
-    #@ CREATING DICTVECTORIZER
+    # Transform data with DictVectorizer
     dv = DictVectorizer(sparse=False)
     train_dict = df_train_full[features].to_dict(orient="records")
     dv.fit(train_dict)
@@ -220,39 +144,43 @@ def train_xgb_classifier(df):
     test_dict = df_test[features].to_dict(orient='records')
     X_test = dv.transform(test_dict)
     
-    #@ CREATING THE DMARTIX:
+    # Convert features to xgb.DMatrix
     features = dv.feature_names_
-
     regex = re.compile(r"<", re.IGNORECASE)
-    features = [regex.sub("_", col) if any(x in str(col) for x in set(('[', ']', '<'))) else col for col in features]
+    features = [regex.sub("_", col) for col in features]
 
     dtrain = xgb.DMatrix(X_train, label=y_train_full, feature_names=features)
     dtest = xgb.DMatrix(X_test, label=y_test, feature_names=features)
     
+    # XGBoost parameters
     xgb_params = {
         'eta': 0.3, 
         'max_depth': 10,
         'min_child_weight': 1,
-
         'objective': 'binary:logistic',
         'eval_metric': 'auc',
-        
         'nthread': 8,
         'seed': 1,
         'verbosity': 1,
     }
 
     model = xgb.train(xgb_params, dtrain, num_boost_round=100)
+    
+    # Predict and calculate ROC AUC
     y_pred = model.predict(dtest)
     score = roc_auc_score(y_test, y_pred)
-    print("ROC AUC Score:", score)
+    print("XGBoost ROC AUC Score:", score)
     
-    #@ Save models to files
-    joblib.dump(dv, 'dv.pkl')
+    # Save models
+    joblib.dump(dv, 'dv_xgb.pkl')
     joblib.dump(model, 'xgb_model.pkl')
-    
+
 
 if __name__ == '__main__':
     df = load_data()
+    
+    # Train Random Forest model
     # train_rf_model(df)
+    
+    # Train XGBoost model
     train_xgb_classifier(df)

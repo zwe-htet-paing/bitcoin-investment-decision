@@ -1,8 +1,8 @@
 ## Bitcoin Investment Decision
 
-DatatalksClub's ML Zoomcamp Midterm Project - 2023
 
-### Objectives of Midterm Project:
+
+### Objectives:
 
 - Problem description
 - Find a dataset

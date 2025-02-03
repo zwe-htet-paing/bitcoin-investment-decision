@@ -4,13 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-numpy = "*"
-scikit-learn = "==1.3.2"
-xgboost = "==2.0.0"
-gunicorn = "*"
+scikit-learn = "*"
+xgboost = "*"
+yfinance = "*"
 flask = "*"
+gunicorn = "*"
+tqdm = "*"
 
 [dev-packages]
+jupyter = "*"
+seaborn = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.12"

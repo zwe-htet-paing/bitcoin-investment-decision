@@ -1,83 +1,133 @@
-# Bitcoin Investment Decision
+# 🚀 Bitcoin Investment Decision
 
-## Objectives
-- Problem Description
-- Find a Dataset
-- Exploratory Data Analysis (EDA)
-- Export Notebook to Script
-- Deploy Model as a Web Service
-- Containerization
+## 🌟 Overview
+Bitcoin (BTC) is known for its high volatility, making investment decisions both exciting and challenging. This project leverages historical BTC price data to develop a strategy that helps determine whether to **buy BTC** or **wait** for more favorable market conditions. 
 
-## Problem Description
-Bitcoin (BTC) is a highly volatile asset, making investment decisions challenging. This project aims to analyze historical BTC price data to develop a strategy for determining whether to buy BTC or wait for more favorable market conditions. The analysis includes studying trends, risk factors, and key technical indicators to inform investment decisions.
+By analyzing trends, risk factors, and key technical indicators, we aim to create a data-driven approach to optimize BTC investment decisions.
 
-## Dataset
-The dataset used is the **Bitcoin USD (BTC-USD)** dataset, which contains historical price and trading data for BTC denominated in US dollars. This dataset allows for an in-depth analysis of Bitcoin's market performance over time.
+---
 
-### Features:
-1. **Date:** Timestamp of the recorded data.
-2. **Open Price:** BTC price at the start of the period.
-3. **High Price:** The highest BTC price during the period.
-4. **Low Price:** The lowest BTC price during the period.
-5. **Close Price:** BTC price at the end of the period.
-6. **Volume:** Total BTC traded during the period.
+## 🔍 Objectives
+- **Analyze** historical Bitcoin price trends.
+- **Develop** predictive models using technical indicators.
+- **Generate** trading signals (Buy or Sell).
+- **Deploy** the model as a web service for easy access.
+- **Containerize** the project using Docker for scalability.
 
-**Dataset Link:** [Yahoo Finance BTC-USD](https://finance.yahoo.com/quote/BTC-USD/history?p=BTC-USD&guccounter=1)
+---
 
-## Data Analysis
-The analysis focuses on calculating key technical indicators to construct a dataset with predictors and an output variable.
+## 📆 Dataset
+We utilize the **Bitcoin USD (BTC-USD)** dataset from [Yahoo Finance](https://finance.yahoo.com/quote/BTC-USD/history/?p=BTC-USD), containing:
 
-### Technical Indicators:
-- **Moving Average (MA):** Reduces noise and identifies price trends.
-- **Stochastic Oscillator (%K and %D):** Measures price momentum and helps identify overbought/oversold conditions.
-- **Relative Strength Index (RSI):** Evaluates the magnitude of price changes to determine market strength.
-- **Rate of Change (ROC):** Measures percentage price change over time.
-- **Momentum (MOM):** Assesses the speed of price movements.
+- **Date:** Timestamp of the recorded data
+- **Open Price:** BTC price at the start of the period
+- **High Price:** Highest BTC price during the period
+- **Low Price:** Lowest BTC price during the period
+- **Close Price:** BTC price at the end of the period
+- **Volume:** Total BTC traded during the period
 
-## Data Preparation for Classification
-The dataset is prepared by computing short-term and long-term Simple Moving Averages (SMA) of the closing price. Trading signals are generated as follows:
-- **Buy Signal (1):** Short-term SMA is above long-term SMA, indicating a bullish trend.
-- **Sell Signal (0):** Short-term SMA is below long-term SMA, indicating a bearish trend.
+### 📥 Download the Dataset
+You can download the dataset using the following code:
 
-## Dependency and Environment Management
-To set up the environment, install dependencies using `pipenv`:
-```sh
-pip install pipenv
-pipenv install
+```python
+import yfinance as yf
+
+# Fetch BTC historical data
+btc = yf.Ticker("BTC-USD")
+df = btc.history(period="max")  # Fetch all available data
+
+# Save as CSV
+df.to_csv("dataset/btc_historical_data.csv")
+
+print("BTC historical data downloaded successfully!")
 ```
 
-## Running the Model Locally
-1. Start the web server:
-```sh
-python predict.py
-```
-2. Open a new terminal and run the test script:
-```sh
-python test_predict.py
+---
+
+## 📊 Data Analysis & Technical Indicators
+To enhance predictive capabilities, we calculate key technical indicators:
+
+- **Moving Average (MA):** Smooths price data to identify trends.
+- **Stochastic Oscillator (%K, %D):** Highlights overbought/oversold conditions.
+- **Relative Strength Index (RSI):** Measures price momentum.
+- **Rate of Change (ROC):** Assesses percentage price changes over time.
+- **Momentum (MOM):** Evaluates the speed of price movements.
+
+### 🚀 Trading Signal Generation
+- **Buy Signal (1):** When short-term SMA > long-term SMA (Bullish trend).
+- **Sell Signal (0):** When short-term SMA < long-term SMA (Bearish trend).
+
+---
+
+## 🤖 Model Training & Fine-Tuning
+We trained and fine-tuned multiple models, including:
+
+- **Linear Regression**
+- **Decision Tree**
+- **Random Forest**
+- **XGBoost** (chosen for deployment due to its superior performance)
+
+For detailed model training, hyperparameter tuning, and evaluation, refer to the [notebook.ipynb](notebook.ipynb).
+
+---
+
+## 🌍 Deployment
+
+### 🛠️ Clone the Repository
+```bash
+git clone https://github.com/zwe-htet-paing/bitcoin-investment-decision.git
+cd bitcoin-investment-decision
 ```
 
-## Running the Model in Docker
-1. Build the Docker image:
-```sh
-docker build -t bitcoin-investment-decision .
-```
-2. Run the container:
-```sh
-docker run -it --rm -p 9696:9696 bitcoin-investment-decision
-```
-3. In a new terminal, test the model:
-```sh
-python test_predict.py
-```
+### 🎓 Local Setup
+1. **Install Dependencies:**  
+   ```bash
+   pip install pipenv
+   pipenv install
+   ```
 
-## Requirements
+2. **Run the Web Server:**  
+   ```bash
+   python predict.py
+   ```
+
+3. **Test the Model:**  
+   Open a new terminal:
+   ```bash
+   python test_predict.py
+   ```
+
+### 🏗️ Docker Deployment
+1. **Build the Docker Image:**  
+   ```bash
+   docker build -t bitcoin-investment-decision .
+   ```
+
+2. **Run the Container:**  
+   ```bash
+   docker run -it --rm -p 9696:9696 bitcoin-investment-decision
+   ```
+
+3. **Test the Model:**  
+   In a new terminal:
+   ```bash
+   python test_predict.py
+   ```
+
+---
+
+## 🚀 Tech Stack
 - **Python:** 3.12
 - **Libraries:**
-  - yfinance
-  - scikit-learn
-  - xgboost
-  - Flask
-  - NumPy
-  - Pandas
-  - Gunicorn
+  - `yfinance`
+  - `scikit-learn`
+  - `xgboost`
+  - `Flask`
+  - `NumPy`
+  - `Pandas`
+  - `Gunicorn`
+
+---
+
+*Happy Investing!* 📈🚀
 
